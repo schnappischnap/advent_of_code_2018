@@ -11,13 +11,13 @@ def part_1(data):
     for line in data:
         requirements[line[36]].append(line[5])
 
-    stack = [c for c in ascii_uppercase if c not in requirements.keys()]
+    available = [c for c in ascii_uppercase if c not in requirements.keys()]
     done = []
-    while stack:
-        done.append(pop_min(stack))
+    while available:
+        done.append(pop_min(available))
         for step, requires in requirements.items():
-            if all(r in done for r in requires) and step not in (done+stack):
-                stack.append(step)
+            if all(r in done for r in requires) and step not in done+available:
+                available.append(step)
 
     return "".join(done)
 
@@ -27,24 +27,23 @@ def part_2(data):
     for line in data:
         requirements[line[36]].append(line[5])
 
-    stack = [c for c in ascii_uppercase if c not in requirements.keys()]
+    available = [c for c in ascii_uppercase if c not in requirements.keys()]
     workers = []
     done = []
     total = 0
-    while workers or stack:
-        if workers:
-            time, step = pop_min(workers)
-            total += time - total
-            done.append(step)
+    while workers or available:
+        for _ in range(min(5-len(workers), len(available))):
+            step = pop_min(available)
+            workers.append((60 + total + ord(step) - 64, step))
+
+        time, step = pop_min(workers)
+        total += time - total
+        done.append(step)
 
         for step, requires in requirements.items():
-            seen = set(done + stack + [w[1] for w in workers])
+            seen = set(done + available + [w[1] for w in workers])
             if all(r in done for r in requires) and step not in seen:
-                stack.append(step)
-
-        for _ in range(min(5-len(workers), len(stack))):
-            step = pop_min(stack)
-            workers.append((60 + total + ord(step) - 64, step))
+                available.append(step)
 
     return total
 
